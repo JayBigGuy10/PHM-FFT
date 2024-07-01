@@ -2,12 +2,13 @@ import pyaudio
 import numpy as np
 import pyfftw
 from collections import Counter
+import matplotlib.pyplot as plt
 
 # Parameters
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1  # Mono audio
 RATE = 44100  # Sampling rate (44.1 kHz)
-CHUNK = 1024  # Size of audio chunks to read
+CHUNK = 8192  # Size of audio chunks to read
 
 # Initialize PyAudio
 audio = pyaudio.PyAudio()
@@ -16,6 +17,20 @@ audio = pyaudio.PyAudio()
 stream = audio.open(format=FORMAT, channels=CHANNELS,
                     rate=RATE, input=True,
                     frames_per_buffer=CHUNK)
+
+# ----------- Load MP3 file
+from pydub import AudioSegment
+audio_file = "3.mp3"
+audio_segment = AudioSegment.from_file(audio_file)
+
+# Convert audio segment to raw audio data
+samples = np.array(audio_segment.get_array_of_samples())
+sample_rate = audio_segment.frame_rate
+
+# Process the audio data in chunks
+num_chunks = len(samples) // CHUNK
+notes = []
+# ------------ End Load MP3
 
 print("Recording...")
 
@@ -55,10 +70,18 @@ def identify_chord(notes):
     return chord_dict.get(notes, "Unknown")
 
 try:
-    while True:
+    #Audio Stream
+    #while True:
         # Read a chunk of audio data
-        data = stream.read(CHUNK)
-        audio_data = np.frombuffer(data, dtype=np.int16)
+    #    data = stream.read(CHUNK)
+    #    audio_data = np.frombuffer(data, dtype=np.int16)
+    #end audio stream
+
+    #Mp3 file
+    for i in range(num_chunks):
+        # Get the current chunk
+        audio_data = samples[i * CHUNK:(i + 1) * CHUNK]
+    #end mp3 file
 
         # Perform FFT using FFTW
         fft_result = pyfftw.interfaces.numpy_fft.fft(audio_data)
@@ -73,7 +96,7 @@ try:
         peak_freq = abs(fft_freq[peak_index])
 
         # Threshold to consider significant peaks
-        threshold = np.max(magnitude) * 0.1
+        threshold = np.max(magnitude) * 0.3
         significant_indices = np.where(magnitude > threshold)[0]
 
         # Find peak frequencies
@@ -91,9 +114,19 @@ try:
         chord = identify_chord(common_notes)
 
         #if chord is not "Unknown":
-        if magnitude[peak_index] > 10000 and peak_freq > 50:
-            print(peak_notes)
+        if magnitude[peak_index] > 1000000 and peak_freq > 50:
+            #10000 for stream
+
+            #print(peak_notes)
             print(f"Detected Notes: {str(common_notes):<20}, Chord: {chord}, Peak Frequency: {peak_freq:10.2f} Hz, Magnitude: {magnitude[peak_index]:.2f}") 
+
+            plt.plot(fft_freq[:len(fft_freq)//2], magnitude[:len(magnitude)//2])
+            plt.xlim(0,500)
+            plt.ylim(0,10000000)
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.title("FFT of MP3 File: "+ audio_file)
+            plt.show()
 
         # if note is not prev_note and note > 0 and peak_index > 100:
             
