@@ -3,3 +3,5 @@ In Andy Weirs 'Project Hail Mary' grace hacks together an eridian to english tra
 <code>
 pip install numpy pyfftw pyaudio
 </code>
+
+- 5:52:58
