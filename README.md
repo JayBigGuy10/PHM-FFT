@@ -6,11 +6,15 @@ I got [nerdsniped](https://xkcd.com/356/) by the program being described as bein
 
 Grace says that he is "not a computer expert, but [he knows] some rudimentary programming" and that it only took him an hour. Only an hour, I wish! Most of the difficulty came from me doing the waveform analysis myself. Maybe it would have gone quicker if I had been less afraid to look into analysis software like https://friture.org/
 
-<code>
-pip install numpy pyfftw pyaudio
-</code>
+DOESN'T YET WORK LOL, just spits out the notes of the loudest freqencies in each sample it takes 
 
-## Notes
+```
+python -m venv env
+./env/scripts/activate
+pip install -r requirements.txt
+```
+
+## Dev Notes / Log
 - https://www.scales-chords.com/chord-namer/
 - https://www.szynalski.com/tone-generator/
 - may require ffmpeg on PATH?
