@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1  # Mono audio
 RATE = 44100  # Sampling rate (44.1 kHz)
-CHUNK = 8192  # Size of audio chunks to read
+CHUNK = 4096  # Size of audio chunks to read
 
 # Initialize PyAudio
 audio = pyaudio.PyAudio()
@@ -99,33 +99,50 @@ try:
         threshold = np.max(magnitude) * 0.3
         significant_indices = np.where(magnitude > threshold)[0]
 
-        # Find peak frequencies
-        peak_freqs = [abs(fft_freq[i]) for i in significant_indices]
+        # Find peak frequencies and their magnitudes
+        peak_freqs = [(abs(fft_freq[i]), magnitude[i]) for i in significant_indices]
+
+        # Sort peaks by magnitude (loudest first)
+        peak_freqs.sort(key=lambda x: x[1], reverse=True)
+
+        # Use a dictionary to keep the loudest example of each note
+        loudest_notes = {}
+        for freq, mag in peak_freqs:
+            note = freq_to_note_name(freq)
+            if note and (note not in loudest_notes or mag > loudest_notes[note][0]):
+                loudest_notes[note] = (int(mag),int(freq))
+
+        loudest_notes_sorted = sorted(loudest_notes.items(), key=lambda x: x[0], reverse=True)
+        peak_notes = [(note,mag) for note, mag in loudest_notes_sorted[:12]]
+
+        # Get the loudest frequencies
+        #top_freqs = peak_freqs[:8]
 
         # Map peak frequencies to notes
-        peak_notes = [freq_to_note_name(freq) for freq in peak_freqs if freq_to_note_name(freq)]
-        
+        #peak_notes = [(freq_to_note_name(freq),int(mag),int(freq)) for freq, mag in top_freqs if freq_to_note_name(freq)]
 
+        # Map peak frequencies to notes
+        #peak_notes = [freq_to_note_name(freq) for freq in peak_freqs if freq_to_note_name(freq)]
         # Identify the most common notes (top 3 for simplicity)
-        note_counts = Counter(peak_notes)
-        common_notes = [note for note, count in note_counts.most_common(3)]
+        #note_counts = Counter(peak_notes)
+        #common_notes = [note for note, count in note_counts.most_common(3)]
 
-        # Identify chord from common notes
-        chord = identify_chord(common_notes)
+        # Identify chord from loudest notes
+        #chord = identify_chord(peak_notes)
 
         #if chord is not "Unknown":
         if magnitude[peak_index] > 1000000 and peak_freq > 50:
             #10000 for stream
 
             #print(peak_notes)
-            print(f"Detected Notes: {str(common_notes):<20}, Chord: {chord}, Peak Frequency: {peak_freq:10.2f} Hz, Magnitude: {magnitude[peak_index]:.2f}") 
+            print(f"Detected Notes: {str(peak_notes):<85}, Peak Frequency: {peak_freq:7.2f} Hz") 
 
             plt.plot(fft_freq[:len(fft_freq)//2], magnitude[:len(magnitude)//2])
             plt.xlim(0,500)
             plt.ylim(0,10000000)
             plt.xlabel("Frequency (Hz)")
             plt.ylabel("Magnitude")
-            plt.title("FFT of MP3 File: "+ audio_file)
+            plt.title("FFT of MP3 File: "+ audio_file +" from " + str(i * CHUNK)+" to "+str((i + 1) * CHUNK))
             plt.show()
 
         # if note is not prev_note and note > 0 and peak_index > 100:
