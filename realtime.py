@@ -81,7 +81,7 @@ try:
 
         # Map peak frequencies to notes
         peak_notes = [freq_to_note_name(freq) for freq in peak_freqs if freq_to_note_name(freq)]
-        #print(peak_notes)
+        
 
         # Identify the most common notes (top 3 for simplicity)
         note_counts = Counter(peak_notes)
@@ -92,6 +92,7 @@ try:
 
         #if chord is not "Unknown":
         if magnitude[peak_index] > 10000 and peak_freq > 50:
+            print(peak_notes)
             print(f"Detected Notes: {str(common_notes):<20}, Chord: {chord}, Peak Frequency: {peak_freq:10.2f} Hz, Magnitude: {magnitude[peak_index]:.2f}") 
 
         # if note is not prev_note and note > 0 and peak_index > 100:
